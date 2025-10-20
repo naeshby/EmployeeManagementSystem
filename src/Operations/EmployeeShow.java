@@ -6,8 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class EmployeeShow {
-    public void viewEmployee(String employeeID) {
+    public String getEmployeeDetails(String employeeID) {
         String query = "SELECT * FROM employees WHERE employee_id = ?";
+        StringBuilder result = new StringBuilder();
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -16,19 +17,21 @@ public class EmployeeShow {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                System.out.println("\n--- Employee Details ---");
-                System.out.println("ID: " + rs.getString("employee_id"));
-                System.out.println("Name: " + rs.getString("name"));
-                System.out.println("Contact: " + rs.getString("contact"));
-                System.out.println("Email: " + rs.getString("email"));
-                System.out.println("Position: " + rs.getString("position"));
-                System.out.println("Salary: " + rs.getDouble("salary"));
+                result.append("--- Employee Details ---\n");
+                result.append("ID: ").append(rs.getString("employee_id")).append("\n");
+                result.append("Name: ").append(rs.getString("name")).append("\n");
+                result.append("Contact: ").append(rs.getString("contact")).append("\n");
+                result.append("Email: ").append(rs.getString("email")).append("\n");
+                result.append("Position: ").append(rs.getString("position")).append("\n");
+                result.append("Salary: ").append(rs.getDouble("salary")).append("\n");
             } else {
-                System.out.println("❌ Employee not found.");
+                result.append("Employee not found.");
             }
 
         } catch (SQLException e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            result.append("Error: ").append(e.getMessage());
         }
+
+        return result.toString();
     }
 }

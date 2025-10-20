@@ -1,28 +1,22 @@
 package Operations;
 
-import java.util.Scanner;
-
 public class EmployeeInfo {
-    String employeeID;
-    String name;
-    String contact;
-    String email;
-    String position;
-    String salary;
+    public String employeeID;
+    public String name;
+    public String contact;
+    public String email;
+    public String position;
+    public String salary;
 
-    public void getInfo() {
-        Scanner input = new Scanner(System.in);
-        System.out.print("Name: ");
-        name = input.nextLine();
-        System.out.print("ID: ");
-        employeeID = input.nextLine();
-        System.out.print("Contact: ");
-        contact = input.nextLine();
-        System.out.print("Email: ");
-        email = input.nextLine();
-        System.out.print("Position: ");
-        position = input.nextLine();
-        System.out.print("Salary: ");
-        salary = input.nextLine();
+    // Optional: Add constructors, getters, and setters
+    public EmployeeInfo() {}
+
+    public EmployeeInfo(String id, String name, String contact, String email, String position, String salary) {
+        this.employeeID = id;
+        this.name = name;
+        this.contact = contact;
+        this.email = email;
+        this.position = position;
+        this.salary = salary;
     }
 }
