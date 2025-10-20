@@ -5,24 +5,22 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class RemoveEmployee {
-    public void removeEmployee(String employeeID) {
+    public boolean removeEmployee(String employeeID) {
+        if (employeeID == null || employeeID.trim().isEmpty()) {
+            throw new IllegalArgumentException("Employee ID cannot be empty");
+        }
+
         String query = "DELETE FROM employees WHERE employee_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setString(1, employeeID);
+            stmt.setString(1, employeeID.trim());
             int rows = stmt.executeUpdate();
-
-            if (rows > 0) {
-                System.out.println("✅ Employee removed successfully.");
-            } else {
-                System.out.println("Employee not found.");
-            }
+            return rows > 0;
 
         } catch (SQLException e) {
-            System.out.println("Error removing employee: " + e.getMessage());
+            throw new RuntimeException("Error removing employee: " + e.getMessage(), e);
         }
     }
 }
-
