@@ -35,6 +35,3 @@ A simple desktop app to manage employees with a GUI. It supports Add, View, Upda
      position    VARCHAR(100),
      salary      VARCHAR(100)
    );
-   
-
-©Naeshby
