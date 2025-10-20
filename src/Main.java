@@ -9,7 +9,7 @@ public class Main {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
             // Set some UI improvements
-            UIManager.put("Button.foreground", new Color(255, 255, 255));
+            UIManager.put("Button.foreground", new Color(0, 0, 0));
             UIManager.put("Button.select", new Color(200, 200, 255));
 
         } catch (Exception e) {
@@ -28,11 +28,7 @@ public class Main {
 
                 JOptionPane.showMessageDialog(frame,
                         "Welcome to Employee Management System!\n\n" +
-                                "By Naeshby\n\n" +
-                                "🚀 Modern Icon-Based Interface\n" +
-                                "🎨 Dark/Light Mode Toggle\n" +
-                                "📊 Interactive Dashboard\n" +
-                                "⚡ Quick Actions Available",
+                                "By Naeshby\n\n",
                         "Welcome to EMS",
                         JOptionPane.INFORMATION_MESSAGE);
 

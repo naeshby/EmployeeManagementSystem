@@ -19,6 +19,8 @@ public class MainFrame extends JFrame {
     private Color lightBorder = new Color(200, 200, 200);
     private Color darkBorder = new Color(80, 80, 80);
     private Color accentColor = new Color(70, 130, 180);
+    private Color sidebarBackground = new Color(240, 240, 240); // Light gray sidebar
+    private Color sidebarForeground = Color.BLACK; // Black text for icons
 
     public MainFrame() {
         setTitle("Employee Management System - By Naeshby");
@@ -67,12 +69,12 @@ public class MainFrame extends JFrame {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setPreferredSize(new Dimension(200, getHeight()));
-        sidebar.setBackground(accentColor);
+        sidebar.setBackground(sidebarBackground); // Light gray background
 
         // Header
         JLabel header = new JLabel("EMS");
         header.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        header.setForeground(Color.WHITE);
+        header.setForeground(sidebarForeground); // Black text
         header.setAlignmentX(Component.CENTER_ALIGNMENT);
         header.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
 
@@ -100,7 +102,7 @@ public class MainFrame extends JFrame {
         // Footer
         JLabel footer = new JLabel("By Naeshby");
         footer.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        footer.setForeground(Color.WHITE);
+        footer.setForeground(sidebarForeground); // Black text
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
         footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         sidebar.add(footer);
@@ -111,21 +113,21 @@ public class MainFrame extends JFrame {
     private JButton createNavButton(String text, String command) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        button.setForeground(Color.WHITE);
-        button.setBackground(accentColor);
+        button.setForeground(sidebarForeground); // Black text for icons
+        button.setBackground(sidebarBackground); // Light gray background
         button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         button.setFocusPainted(false);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(180, 40));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Hover effect
+        // Hover effect - slightly darker background
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(accentColor.brighter());
+                button.setBackground(new Color(220, 220, 220)); // Darker gray on hover
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(accentColor);
+                button.setBackground(sidebarBackground); // Back to light gray
             }
         });
 
@@ -192,6 +194,7 @@ public class MainFrame extends JFrame {
         JLabel iconLabel = new JLabel(icon);
         iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 36));
         iconLabel.setHorizontalAlignment(JLabel.CENTER);
+        iconLabel.setForeground(Color.BLACK); // Black icons
 
         JLabel titleLabel = new JLabel(title, JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -237,7 +240,7 @@ public class MainFrame extends JFrame {
     private JButton createQuickActionButton(String text, String command, Color color) {
         JButton button = new JButton("<html><center>" + text + "</center></html>");
         button.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.BLACK); // White text on colored buttons
         button.setBackground(color);
         button.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         button.setFocusPainted(false);
@@ -313,6 +316,9 @@ public class MainFrame extends JFrame {
             dashboardPanel.setBackground(lightBackground);
             updateDashboardTheme(false);
         }
+
+        // Update sidebar for light theme
+        updateSidebarTheme(false);
     }
 
     private void applyDarkTheme() {
@@ -320,6 +326,64 @@ public class MainFrame extends JFrame {
         if (dashboardPanel != null) {
             dashboardPanel.setBackground(darkBackground);
             updateDashboardTheme(true);
+        }
+
+        // Update sidebar for dark theme
+        updateSidebarTheme(true);
+    }
+
+    private void updateSidebarTheme(boolean darkMode) {
+        // Find sidebar component
+        Component[] components = getContentPane().getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel) {
+                JPanel sidebar = (JPanel) comp;
+                // Check if this is the sidebar by its background color or size
+                if (sidebar.getPreferredSize().width == 200) {
+                    if (darkMode) {
+                        sidebar.setBackground(new Color(60, 63, 65)); // Dark sidebar
+                        updateSidebarComponents(sidebar, Color.WHITE); // White text in dark mode
+                    } else {
+                        sidebar.setBackground(sidebarBackground); // Light sidebar
+                        updateSidebarComponents(sidebar, sidebarForeground); // Black text in light mode
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private void updateSidebarComponents(JPanel sidebar, Color textColor) {
+        for (Component comp : sidebar.getComponents()) {
+            if (comp instanceof JLabel) {
+                ((JLabel) comp).setForeground(textColor);
+            } else if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                button.setForeground(textColor);
+                if (textColor.equals(Color.WHITE)) {
+                    // Dark mode - darker background for buttons
+                    button.setBackground(new Color(80, 80, 80));
+                    button.addMouseListener(new java.awt.event.MouseAdapter() {
+                        public void mouseEntered(java.awt.event.MouseEvent evt) {
+                            button.setBackground(new Color(100, 100, 100));
+                        }
+                        public void mouseExited(java.awt.event.MouseEvent evt) {
+                            button.setBackground(new Color(80, 80, 80));
+                        }
+                    });
+                } else {
+                    // Light mode - light background for buttons
+                    button.setBackground(sidebarBackground);
+                    button.addMouseListener(new java.awt.event.MouseAdapter() {
+                        public void mouseEntered(java.awt.event.MouseEvent evt) {
+                            button.setBackground(new Color(220, 220, 220));
+                        }
+                        public void mouseExited(java.awt.event.MouseEvent evt) {
+                            button.setBackground(sidebarBackground);
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -364,7 +428,8 @@ public class MainFrame extends JFrame {
                     if (contentComp instanceof JLabel) {
                         JLabel label = (JLabel) contentComp;
                         if (label.getText().matches("👥|💰|📊|⭐")) {
-                            // Keep icon color
+                            // Set icon color to black in both light and dark modes
+                            label.setForeground(Color.BLACK);
                         } else if (label.getForeground().equals(Color.GRAY)) {
                             label.setForeground(darkMode ? Color.LIGHT_GRAY : Color.GRAY);
                         } else {

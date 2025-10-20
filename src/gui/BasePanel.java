@@ -17,7 +17,7 @@ public abstract class BasePanel extends JPanel {
     protected JLabel createTitleLabel(String text, Color color) {
         JLabel titleLabel = new JLabel(text, JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titleLabel.setForeground(color);
+        titleLabel.setForeground(Color.BLACK); // Force black color for all titles including icons
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
         return titleLabel;
     }
@@ -73,8 +73,8 @@ public abstract class BasePanel extends JPanel {
     protected JButton createActionButton(String text, Color color) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
+        button.setBackground(color); // Button background color
+        button.setForeground(Color.BLACK); // Button text color
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -82,10 +82,10 @@ public abstract class BasePanel extends JPanel {
         // Hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(color.brighter());
+                button.setBackground(color.brighter()); // Hover background
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(color);
+                button.setBackground(color); // Normal background
             }
         });
 
@@ -152,7 +152,7 @@ public abstract class BasePanel extends JPanel {
         if (mainFrame.isDarkMode()) {
             UIManager.put("OptionPane.background", mainFrame.getPanelBackground());
             UIManager.put("Panel.background", mainFrame.getPanelBackground());
-            UIManager.put("OptionPane.messageForeground", Color.WHITE);
+            UIManager.put("OptionPane.messageForeground", Color.BLACK);
         }
 
         JOptionPane.showMessageDialog(this, message, title, messageType);

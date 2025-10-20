@@ -17,7 +17,7 @@ public class AddEmployeePanel extends BasePanel {
 
     private void initializePanel() {
         // Title
-        JLabel titleLabel = createTitleLabel("➕ Add New Employee", new Color(60, 179, 113));
+        JLabel titleLabel = createTitleLabel("Add New Employee", new Color(60, 179, 113));
         add(titleLabel, BorderLayout.NORTH);
 
         // Form panel
