@@ -7,8 +7,24 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AddEmployeePanel extends BasePanel {
-    private JTextField nameField, idField, contactField, emailField, positionField, salaryField;
+    private JTextField nameField, idField, contactField, emailField, salaryField;
+    private JComboBox<String> positionComboBox;
     private JButton submitButton, clearButton;
+
+    // Predefined positions
+    private final String[] PREDEFINED_POSITIONS = {
+            "Select Position",
+            "Software Engineer",
+            "Senior Developer",
+            "Project Manager",
+            "Business Analyst",
+            "Quality Assurance",
+            "DevOps Engineer",
+            "Data Scientist",
+            "UI/UX Designer",
+            "System Administrator",
+            "Technical Lead"
+    };
 
     public AddEmployeePanel(MainFrame mainFrame) {
         super(mainFrame);
@@ -16,8 +32,8 @@ public class AddEmployeePanel extends BasePanel {
     }
 
     private void initializePanel() {
-        // Title
-        JLabel titleLabel = createTitleLabel("Add New Employee", new Color(60, 179, 113));
+        // Title with icon
+        JLabel titleLabel = createTitleLabel("Add New Employee", new Color(0, 100, 0), mainFrame.getAddIcon());
         add(titleLabel, BorderLayout.NORTH);
 
         // Form panel
@@ -31,15 +47,17 @@ public class AddEmployeePanel extends BasePanel {
         idField = createTextField();
         contactField = createTextField();
         emailField = createTextField();
-        positionField = createTextField();
         salaryField = createTextField();
+
+        // Create position combo box
+        positionComboBox = createStyledComboBox();
 
         // Add form fields
         addFormField(formPanel, "Name *:", nameField, 0);
         addFormField(formPanel, "Employee ID *:", idField, 1);
         addFormField(formPanel, "Contact:", contactField, 2);
         addFormField(formPanel, "Email:", emailField, 3);
-        addFormField(formPanel, "Position:", positionField, 4);
+        addFormFieldWithComboBox(formPanel, "Position *:", positionComboBox, 4);
         addFormField(formPanel, "Salary *:", salaryField, 5);
 
         add(formPanel, BorderLayout.CENTER);
@@ -48,8 +66,8 @@ public class AddEmployeePanel extends BasePanel {
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(mainFrame.getBackgroundColor());
 
-        submitButton = createActionButton("Add Employee", new Color(60, 179, 113));
-        clearButton = createActionButton("Clear Form", new Color(220, 20, 60));
+        submitButton = createActionButton("Add Employee", new Color(0, 150, 0));
+        clearButton = createActionButton("Clear Form", new Color(200, 0, 0));
 
         submitButton.addActionListener(e -> addEmployee());
         clearButton.addActionListener(e -> clearForm());
@@ -60,16 +78,37 @@ public class AddEmployeePanel extends BasePanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    @Override
-    public void applyTheme(boolean darkMode) {
-        setBackground(mainFrame.getBackgroundColor());
+    private JComboBox<String> createStyledComboBox() {
+        JComboBox<String> comboBox = new JComboBox<>(PREDEFINED_POSITIONS);
+        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        comboBox.setPreferredSize(new Dimension(250, 35));
+        comboBox.setBackground(Color.WHITE);
+        comboBox.setForeground(Color.BLACK);
+        comboBox.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        return comboBox;
+    }
 
-        // Apply theme to all components
-        for (Component comp : getComponents()) {
-            applyThemeToComponent(comp, darkMode);
-        }
+    // Helper method for combo box fields
+    private void addFormFieldWithComboBox(JPanel formPanel, String label, JComboBox<String> comboBox, int gridy) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = gridy;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 15);
 
-        repaint();
+        JLabel jLabel = new JLabel(label);
+        jLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        jLabel.setForeground(mainFrame.getForegroundColor());
+        formPanel.add(jLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        formPanel.add(comboBox, gbc);
     }
 
     private void addEmployee() {
@@ -80,6 +119,14 @@ public class AddEmployeePanel extends BasePanel {
                     salaryField.getText().trim().isEmpty()) {
                 showMessage("Please fill all required fields (*)",
                         "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Validate position selection
+            String selectedPosition = (String) positionComboBox.getSelectedItem();
+            if (selectedPosition == null || selectedPosition.equals("Select Position")) {
+                showMessage("Please select a position from the list",
+                        "Position Required", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -98,7 +145,7 @@ public class AddEmployeePanel extends BasePanel {
             employee.setEmployeeID(idField.getText().trim());
             employee.setContact(contactField.getText().trim());
             employee.setEmail(emailField.getText().trim());
-            employee.setPosition(positionField.getText().trim());
+            employee.setPosition(selectedPosition);
             employee.setSalary(salaryField.getText().trim());
 
             // Add to database
@@ -106,16 +153,20 @@ public class AddEmployeePanel extends BasePanel {
             boolean success = employeeAdd.createEmployee(employee);
 
             if (success) {
-                showMessage("✅ Employee added successfully!\n\n" +
+                showMessage("Employee added successfully!\n\n" +
                                 "Name: " + employee.getName() + "\n" +
                                 "ID: " + employee.getEmployeeID() + "\n" +
-                                "Position: " + employee.getPosition(),
+                                "Position: " + selectedPosition + "\n" +
+                                "Salary: $" + String.format("%,.2f", Double.parseDouble(employee.getSalary())),
                         "Success", JOptionPane.INFORMATION_MESSAGE);
                 clearForm();
+
+                // Refresh dashboard data
+                mainFrame.refreshDashboardData();
             }
 
         } catch (Exception ex) {
-            showMessage("❌ Error adding employee: " + ex.getMessage(),
+            showMessage("Error adding employee: " + ex.getMessage(),
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -125,7 +176,7 @@ public class AddEmployeePanel extends BasePanel {
         idField.setText("");
         contactField.setText("");
         emailField.setText("");
-        positionField.setText("");
+        positionComboBox.setSelectedIndex(0);
         salaryField.setText("");
         nameField.requestFocus();
     }

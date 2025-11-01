@@ -1,26 +1,36 @@
 package gui;
 
+import Operations.DatabaseOperations;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Objects;
 
 public class MainFrame extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private JPanel dashboardPanel;
-    private boolean darkMode = false;
-    private Color lightBackground = new Color(240, 245, 255);
-    private Color darkBackground = new Color(45, 45, 55);
-    private Color lightForeground = Color.BLACK;
-    private Color darkForeground = Color.WHITE;
-    private Color lightPanelBg = Color.WHITE;
-    private Color darkPanelBg = new Color(60, 63, 65);
-    private Color lightBorder = new Color(200, 200, 200);
-    private Color darkBorder = new Color(80, 80, 80);
+
+    // Colors
+    private Color backgroundColor = new Color(240, 245, 255);
+    private Color foregroundColor = Color.BLACK;
+    private Color panelBackground = Color.WHITE;
+    private Color borderColor = new Color(200, 200, 200);
     private Color accentColor = new Color(70, 130, 180);
-    private Color sidebarBackground = new Color(240, 240, 240); // Light gray sidebar
-    private Color sidebarForeground = Color.BLACK; // Black text for icons
+    private Color sidebarBackground = new Color(240, 240, 240);
+    private Color sidebarForeground = Color.BLACK;
+
+    // Dashboard stat components
+    private JLabel totalEmployeesValue;
+    private JLabel averageSalaryValue;
+    private JLabel departmentsValue;
+    private JLabel topPerformersValue;
+
+    // Icons
+    private ImageIcon dashboardIcon, addIcon, viewIcon, updateIcon, deleteIcon, refreshIcon, exitIcon;
+    private ImageIcon employeeIcon, salaryIcon, departmentIcon, starIcon;
 
     public MainFrame() {
         setTitle("Employee Management System - By Naeshby");
@@ -28,23 +38,55 @@ public class MainFrame extends JFrame {
         setSize(1000, 700);
         setLocationRelativeTo(null);
 
+        loadIcons();
         initializeUI();
-        applyLightTheme();
+    }
+
+    private void loadIcons() {
+        try {
+            // Load sidebar icons
+            dashboardIcon = createScaledIcon("/icons/dashboard.png", 20, 20);
+            addIcon = createScaledIcon("/icons/add.png", 20, 20);
+            viewIcon = createScaledIcon("/icons/view.png", 20, 20);
+            updateIcon = createScaledIcon("/icons/update.png", 20, 20);
+            deleteIcon = createScaledIcon("/icons/delete.png", 20, 20);
+            refreshIcon = createScaledIcon("/icons/refresh.png", 20, 20);
+            exitIcon = createScaledIcon("/icons/exit.png", 20, 20);
+
+            // Load dashboard stat icons
+            employeeIcon = createScaledIcon("/icons/employee.png", 65, 65);
+            salaryIcon = createScaledIcon("/icons/salary.png", 65, 65);
+            departmentIcon = createScaledIcon("/icons/department.png", 65, 65);
+            starIcon = createScaledIcon("/icons/star.png", 65, 65);
+
+        } catch (Exception e) {
+            System.err.println("Error loading icons: " + e.getMessage());
+        }
+    }
+
+    private ImageIcon createScaledIcon(String path, int width, int height) {
+        try {
+            ImageIcon originalIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource(path)));
+            Image scaledImage = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            return new ImageIcon(scaledImage);
+        } catch (Exception e) {
+            System.err.println("Failed to load icon: " + path);
+            return null;
+        }
     }
 
     private void initializeUI() {
-        // Create main layout with sidebar and content area
         setLayout(new BorderLayout());
 
         // Create sidebar
         JPanel sidebar = createSidebar();
         add(sidebar, BorderLayout.WEST);
 
-        // Create main content area with card layout
+        // Create main content area
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Create different panels
+        // Create panels
         AddEmployeePanel addPanel = new AddEmployeePanel(this);
         ViewEmployeePanel viewPanel = new ViewEmployeePanel(this);
         UpdateEmployeePanel updatePanel = new UpdateEmployeePanel(this);
@@ -61,48 +103,67 @@ public class MainFrame extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // Show dashboard initially
         cardLayout.show(mainPanel, "DASHBOARD");
+        refreshDashboardData();
+    }
+
+    public void refreshDashboardData() {
+        if (dashboardPanel != null) {
+            updateDashboardStats();
+        }
+    }
+
+    private void updateDashboardStats() {
+        int totalEmployees = DatabaseOperations.getTotalEmployees();
+        double avgSalary = DatabaseOperations.getAverageSalary();
+        int deptCount = DatabaseOperations.getDepartmentCount();
+        int topPerformers = DatabaseOperations.getTopPerformersCount();
+
+        if (totalEmployeesValue != null) totalEmployeesValue.setText(String.valueOf(totalEmployees));
+        if (averageSalaryValue != null) averageSalaryValue.setText(String.format("$%,.2f", avgSalary));
+        if (departmentsValue != null) departmentsValue.setText(String.valueOf(deptCount));
+        if (topPerformersValue != null) topPerformersValue.setText(String.valueOf(topPerformers));
     }
 
     private JPanel createSidebar() {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setPreferredSize(new Dimension(200, getHeight()));
-        sidebar.setBackground(sidebarBackground); // Light gray background
+        sidebar.setBackground(sidebarBackground);
 
         // Header
+        JPanel headerPanel = new JPanel(new FlowLayout());
+        headerPanel.setBackground(sidebarBackground);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
+
         JLabel header = new JLabel("EMS");
         header.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        header.setForeground(sidebarForeground); // Black text
-        header.setAlignmentX(Component.CENTER_ALIGNMENT);
-        header.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
-
-        sidebar.add(header);
+        header.setForeground(sidebarForeground);
+        headerPanel.add(header);
+        sidebar.add(headerPanel);
 
         // Navigation buttons
-        String[] navItems = {
-                "🏠 Dashboard", "➕ Add Employee", "👁️ View Employee",
-                "✏️ Update Employee", "🗑️ Delete Employee", "🌙 Dark Mode", "🚪 Exit"
+        JButton[] navButtons = {
+                createNavButton("Dashboard", "DASHBOARD", dashboardIcon),
+                createNavButton("Add Employee", "ADD", addIcon),
+                createNavButton("View Employee", "VIEW", viewIcon),
+                createNavButton("Update Employee", "UPDATE", updateIcon),
+                createNavButton("Delete Employee", "DELETE", deleteIcon),
+                createNavButton("Refresh Data", "REFRESH", refreshIcon),
+                createNavButton("Exit", "EXIT", exitIcon)
         };
 
-        String[] commands = {
-                "DASHBOARD", "ADD", "VIEW", "UPDATE", "DELETE", "THEME", "EXIT"
-        };
-
-        for (int i = 0; i < navItems.length; i++) {
-            JButton navButton = createNavButton(navItems[i], commands[i]);
-            sidebar.add(navButton);
+        for (JButton button : navButtons) {
+            sidebar.add(button);
             sidebar.add(Box.createRigidArea(new Dimension(0, 5)));
         }
 
-        // Add spacer to push everything to top
         sidebar.add(Box.createVerticalGlue());
 
         // Footer
         JLabel footer = new JLabel("By Naeshby");
         footer.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        footer.setForeground(sidebarForeground); // Black text
+        footer.setForeground(sidebarForeground);
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
         footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         sidebar.add(footer);
@@ -110,24 +171,30 @@ public class MainFrame extends JFrame {
         return sidebar;
     }
 
-    private JButton createNavButton(String text, String command) {
+    private JButton createNavButton(String text, String command, ImageIcon icon) {
         JButton button = new JButton(text);
+
+        if (icon != null) {
+            button.setIcon(icon);
+            button.setHorizontalAlignment(SwingConstants.LEFT);
+            button.setIconTextGap(10);
+        }
+
         button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        button.setForeground(sidebarForeground); // Black text for icons
-        button.setBackground(sidebarBackground); // Light gray background
+        button.setForeground(sidebarForeground);
+        button.setBackground(sidebarBackground);
         button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         button.setFocusPainted(false);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(180, 40));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Hover effect - slightly darker background
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(220, 220, 220)); // Darker gray on hover
+                button.setBackground(new Color(220, 220, 220));
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(sidebarBackground); // Back to light gray
+                button.setBackground(sidebarBackground);
             }
         });
 
@@ -139,11 +206,11 @@ public class MainFrame extends JFrame {
 
     private JPanel createDashboardPanel() {
         JPanel dashboard = new JPanel(new BorderLayout());
-        dashboard.setBackground(lightBackground);
+        dashboard.setBackground(backgroundColor);
         dashboard.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
         // Header
-        JLabel header = new JLabel("🏠 Employee Management Dashboard", JLabel.CENTER);
+        JLabel header = new JLabel("Employee Management Dashboard", JLabel.CENTER);
         header.setFont(new Font("Segoe UI", Font.BOLD, 32));
         header.setForeground(accentColor);
         header.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
@@ -162,28 +229,36 @@ public class MainFrame extends JFrame {
 
     private JPanel createStatsPanel() {
         JPanel statsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
-        statsPanel.setBackground(lightBackground);
+        statsPanel.setBackground(backgroundColor);
 
-        // Create stat cards
-        String[] statIcons = {"👥", "💰", "📊", "⭐"};
-        String[] statTitles = {"Total Employees", "Average Salary", "Departments", "Top Performers"};
-        String[] statValues = {"24", "$65,420", "5", "8"};
-        Color[] statColors = {
-                new Color(70, 130, 180),
-                new Color(60, 179, 113),
-                new Color(255, 165, 0),
-                new Color(220, 20, 60)
-        };
+        int totalEmployees = DatabaseOperations.getTotalEmployees();
+        double avgSalary = DatabaseOperations.getAverageSalary();
+        int deptCount = DatabaseOperations.getDepartmentCount();
+        int topPerformers = DatabaseOperations.getTopPerformersCount();
 
-        for (int i = 0; i < 4; i++) {
-            JPanel statCard = createStatCard(statIcons[i], statTitles[i], statValues[i], statColors[i]);
-            statsPanel.add(statCard);
-        }
+        JPanel totalEmployeesCard = createStatCard(employeeIcon, "Total Employees",
+                String.valueOf(totalEmployees), new Color(70, 130, 180));
+        JPanel avgSalaryCard = createStatCard(salaryIcon, "Average Salary",
+                String.format("$%,.2f", avgSalary), new Color(60, 179, 113));
+        JPanel departmentsCard = createStatCard(departmentIcon, "Departments",
+                String.valueOf(deptCount), new Color(255, 165, 0));
+        JPanel topPerformersCard = createStatCard(starIcon, "Top Performers",
+                String.valueOf(topPerformers), new Color(220, 20, 60));
+
+        totalEmployeesValue = (JLabel) ((JPanel) totalEmployeesCard.getComponent(0)).getComponent(2);
+        averageSalaryValue = (JLabel) ((JPanel) avgSalaryCard.getComponent(0)).getComponent(2);
+        departmentsValue = (JLabel) ((JPanel) departmentsCard.getComponent(0)).getComponent(2);
+        topPerformersValue = (JLabel) ((JPanel) topPerformersCard.getComponent(0)).getComponent(2);
+
+        statsPanel.add(totalEmployeesCard);
+        statsPanel.add(avgSalaryCard);
+        statsPanel.add(departmentsCard);
+        statsPanel.add(topPerformersCard);
 
         return statsPanel;
     }
 
-    private JPanel createStatCard(String icon, String title, String value, Color color) {
+    private JPanel createStatCard(ImageIcon icon, String title, String value, Color color) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -191,10 +266,11 @@ public class MainFrame extends JFrame {
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
 
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI", Font.PLAIN, 36));
+        JLabel iconLabel = new JLabel();
+        if (icon != null) {
+            iconLabel.setIcon(icon);
+        }
         iconLabel.setHorizontalAlignment(JLabel.CENTER);
-        iconLabel.setForeground(Color.BLACK); // Black icons
 
         JLabel titleLabel = new JLabel(title, JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -211,42 +287,44 @@ public class MainFrame extends JFrame {
         contentPanel.add(valueLabel, BorderLayout.SOUTH);
 
         card.add(contentPanel, BorderLayout.CENTER);
-
         return card;
     }
 
     private JPanel createQuickActionsPanel() {
         JPanel quickActions = new JPanel(new GridLayout(1, 4, 15, 15));
-        quickActions.setBackground(lightBackground);
+        quickActions.setBackground(backgroundColor);
         quickActions.setBorder(BorderFactory.createEmptyBorder(40, 0, 0, 0));
 
-        String[] actions = {"➕ Add New", "🔍 Find", "✏️ Update", "🗑️ Remove"};
-        String[] commands = {"ADD", "VIEW", "UPDATE", "DELETE"};
-        Color[] colors = {
-                new Color(60, 179, 113),
-                new Color(70, 130, 180),
-                new Color(255, 165, 0),
-                new Color(220, 20, 60)
+        JButton[] actionButtons = {
+                createQuickActionButton("Add New", "ADD", addIcon, new Color(60, 179, 113)),
+                createQuickActionButton("Find", "VIEW", viewIcon, new Color(70, 130, 180)),
+                createQuickActionButton("Update", "UPDATE", updateIcon, new Color(255, 165, 0)),
+                createQuickActionButton("Remove", "DELETE", deleteIcon, new Color(220, 20, 60))
         };
 
-        for (int i = 0; i < 4; i++) {
-            JButton actionBtn = createQuickActionButton(actions[i], commands[i], colors[i]);
-            quickActions.add(actionBtn);
+        for (JButton button : actionButtons) {
+            quickActions.add(button);
         }
 
         return quickActions;
     }
 
-    private JButton createQuickActionButton(String text, String command, Color color) {
-        JButton button = new JButton("<html><center>" + text + "</center></html>");
-        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        button.setForeground(Color.BLACK); // White text on colored buttons
+    private JButton createQuickActionButton(String text, String command, ImageIcon icon, Color color) {
+        JButton button = new JButton(text);
+
+        if (icon != null) {
+            button.setIcon(icon);
+            button.setHorizontalTextPosition(SwingConstants.CENTER);
+            button.setVerticalTextPosition(SwingConstants.BOTTOM);
+        }
+
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setForeground(Color.BLACK);
         button.setBackground(color);
         button.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(color.brighter());
@@ -270,6 +348,7 @@ public class MainFrame extends JFrame {
             switch (command) {
                 case "DASHBOARD":
                     cardLayout.show(mainPanel, "DASHBOARD");
+                    refreshDashboardData();
                     break;
                 case "ADD":
                     cardLayout.show(mainPanel, "ADD");
@@ -286,8 +365,10 @@ public class MainFrame extends JFrame {
                     cardLayout.show(mainPanel, "DELETE");
                     ((DeleteEmployeePanel) mainPanel.getComponent(4)).clearForm();
                     break;
-                case "THEME":
-                    toggleDarkMode();
+                case "REFRESH":
+                    refreshDashboardData();
+                    JOptionPane.showMessageDialog(MainFrame.this,
+                            "Dashboard data refreshed!", "Data Updated", JOptionPane.INFORMATION_MESSAGE);
                     break;
                 case "EXIT":
                     new Operations.Exit().exit();
@@ -296,203 +377,16 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void toggleDarkMode() {
-        darkMode = !darkMode;
-        if (darkMode) {
-            applyDarkTheme();
-        } else {
-            applyLightTheme();
-        }
-        refreshAllPanels();
+    // Getters for colors and icons
+    public Color getBackgroundColor() { return backgroundColor; }
+    public Color getForegroundColor() { return foregroundColor; }
+    public Color getPanelBackground() { return panelBackground; }
+    public Color getBorderColor() { return borderColor; }
+    public Color getTextAreaBackground() { return new Color(248, 248, 248); }
+    public Color getTextAreaForeground() { return Color.BLACK; }
 
-        // Show theme change message
-        String theme = darkMode ? "Dark" : "Light";
-        showMessage(this, "Switched to " + theme + " Mode 🌙", "Theme Changed", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void applyLightTheme() {
-        getContentPane().setBackground(lightBackground);
-        if (dashboardPanel != null) {
-            dashboardPanel.setBackground(lightBackground);
-            updateDashboardTheme(false);
-        }
-
-        // Update sidebar for light theme
-        updateSidebarTheme(false);
-    }
-
-    private void applyDarkTheme() {
-        getContentPane().setBackground(darkBackground);
-        if (dashboardPanel != null) {
-            dashboardPanel.setBackground(darkBackground);
-            updateDashboardTheme(true);
-        }
-
-        // Update sidebar for dark theme
-        updateSidebarTheme(true);
-    }
-
-    private void updateSidebarTheme(boolean darkMode) {
-        // Find sidebar component
-        Component[] components = getContentPane().getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JPanel) {
-                JPanel sidebar = (JPanel) comp;
-                // Check if this is the sidebar by its background color or size
-                if (sidebar.getPreferredSize().width == 200) {
-                    if (darkMode) {
-                        sidebar.setBackground(new Color(60, 63, 65)); // Dark sidebar
-                        updateSidebarComponents(sidebar, Color.WHITE); // White text in dark mode
-                    } else {
-                        sidebar.setBackground(sidebarBackground); // Light sidebar
-                        updateSidebarComponents(sidebar, sidebarForeground); // Black text in light mode
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    private void updateSidebarComponents(JPanel sidebar, Color textColor) {
-        for (Component comp : sidebar.getComponents()) {
-            if (comp instanceof JLabel) {
-                ((JLabel) comp).setForeground(textColor);
-            } else if (comp instanceof JButton) {
-                JButton button = (JButton) comp;
-                button.setForeground(textColor);
-                if (textColor.equals(Color.WHITE)) {
-                    // Dark mode - darker background for buttons
-                    button.setBackground(new Color(80, 80, 80));
-                    button.addMouseListener(new java.awt.event.MouseAdapter() {
-                        public void mouseEntered(java.awt.event.MouseEvent evt) {
-                            button.setBackground(new Color(100, 100, 100));
-                        }
-                        public void mouseExited(java.awt.event.MouseEvent evt) {
-                            button.setBackground(new Color(80, 80, 80));
-                        }
-                    });
-                } else {
-                    // Light mode - light background for buttons
-                    button.setBackground(sidebarBackground);
-                    button.addMouseListener(new java.awt.event.MouseAdapter() {
-                        public void mouseEntered(java.awt.event.MouseEvent evt) {
-                            button.setBackground(new Color(220, 220, 220));
-                        }
-                        public void mouseExited(java.awt.event.MouseEvent evt) {
-                            button.setBackground(sidebarBackground);
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    private void updateDashboardTheme(boolean darkMode) {
-        Component[] components = dashboardPanel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JLabel) {
-                ((JLabel) comp).setForeground(darkMode ? darkForeground : lightForeground);
-            } else if (comp instanceof JPanel) {
-                updatePanelTheme((JPanel) comp, darkMode);
-            }
-        }
-    }
-
-    private void updatePanelTheme(JPanel panel, boolean darkMode) {
-        panel.setBackground(darkMode ? darkBackground : lightBackground);
-        for (Component comp : panel.getComponents()) {
-            if (comp instanceof JPanel) {
-                JPanel childPanel = (JPanel) comp;
-                if (childPanel.getComponentCount() > 0) {
-                    // Check if this is a stat card
-                    Component firstChild = childPanel.getComponent(0);
-                    if (firstChild instanceof JPanel) {
-                        // It's a stat card, update its background
-                        firstChild.setBackground(darkMode ? darkPanelBg : Color.WHITE);
-                        updateStatCardTheme((JPanel) firstChild, darkMode);
-                    } else if (firstChild instanceof JButton) {
-                        // It's a button, keep its original color
-                    }
-                }
-            }
-        }
-    }
-
-    private void updateStatCardTheme(JPanel card, boolean darkMode) {
-        card.setBackground(darkMode ? darkPanelBg : Color.WHITE);
-        for (Component comp : card.getComponents()) {
-            if (comp instanceof JPanel) {
-                JPanel contentPanel = (JPanel) comp;
-                contentPanel.setBackground(darkMode ? darkPanelBg : Color.WHITE);
-                for (Component contentComp : contentPanel.getComponents()) {
-                    if (contentComp instanceof JLabel) {
-                        JLabel label = (JLabel) contentComp;
-                        if (label.getText().matches("👥|💰|📊|⭐")) {
-                            // Set icon color to black in both light and dark modes
-                            label.setForeground(Color.BLACK);
-                        } else if (label.getForeground().equals(Color.GRAY)) {
-                            label.setForeground(darkMode ? Color.LIGHT_GRAY : Color.GRAY);
-                        } else {
-                            // Keep value color (accent colors)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void refreshAllPanels() {
-        for (Component comp : mainPanel.getComponents()) {
-            if (comp instanceof BasePanel) {
-                ((BasePanel) comp).applyTheme(darkMode);
-            }
-        }
-        repaint();
-        revalidate();
-    }
-
-    private void showMessage(Component parent, String message, String title, int messageType) {
-        if (darkMode) {
-            UIManager.put("OptionPane.background", darkPanelBg);
-            UIManager.put("Panel.background", darkPanelBg);
-            UIManager.put("OptionPane.messageForeground", Color.WHITE);
-        }
-
-        JOptionPane.showMessageDialog(parent, message, title, messageType);
-
-        if (darkMode) {
-            UIManager.put("OptionPane.background", null);
-            UIManager.put("Panel.background", null);
-            UIManager.put("OptionPane.messageForeground", null);
-        }
-    }
-
-    // Getters for theme colors
-    public Color getBackgroundColor() {
-        return darkMode ? darkBackground : lightBackground;
-    }
-
-    public Color getForegroundColor() {
-        return darkMode ? darkForeground : lightForeground;
-    }
-
-    public Color getPanelBackground() {
-        return darkMode ? darkPanelBg : lightPanelBg;
-    }
-
-    public Color getBorderColor() {
-        return darkMode ? darkBorder : lightBorder;
-    }
-
-    public Color getTextAreaBackground() {
-        return darkMode ? new Color(43, 43, 43) : new Color(248, 248, 248);
-    }
-
-    public Color getTextAreaForeground() {
-        return darkMode ? Color.WHITE : Color.BLACK;
-    }
-
-    public boolean isDarkMode() {
-        return darkMode;
-    }
+    public ImageIcon getAddIcon() { return addIcon; }
+    public ImageIcon getViewIcon() { return viewIcon; }
+    public ImageIcon getUpdateIcon() { return updateIcon; }
+    public ImageIcon getDeleteIcon() { return deleteIcon; }
 }

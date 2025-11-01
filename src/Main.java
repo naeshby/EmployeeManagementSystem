@@ -1,48 +1,42 @@
 import gui.MainFrame;
+import gui.SplashScreen;
 import javax.swing.*;
-import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
-        // Set look and feel to system default
+        // Set look and feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
-            // Set some UI improvements
-            UIManager.put("Button.foreground", new Color(0, 0, 0));
-            UIManager.put("Button.select", new Color(200, 200, 255));
-
         } catch (Exception e) {
             System.err.println("Error setting look and feel: " + e.getMessage());
         }
 
-        // Create and show GUI on Event Dispatch Thread
+        // Show splash screen on EDT
         SwingUtilities.invokeLater(() -> {
-            try {
-                MainFrame frame = new MainFrame();
-                frame.setVisible(true);
+            SplashScreen splash = new SplashScreen(4000); // 4 seconds
 
-                // Show welcome message
-                UIManager.put("OptionPane.background", Color.WHITE);
-                UIManager.put("Panel.background", Color.WHITE);
+            // Show splash and then main application
+            new Thread(() -> {
+                splash.showSplash();
 
-                JOptionPane.showMessageDialog(frame,
-                        "Welcome to Employee Management System!\n\n" +
-                                "By Naeshby\n\n",
-                        "Welcome to EMS",
-                        JOptionPane.INFORMATION_MESSAGE);
+                // Now show main application on EDT
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        MainFrame frame = new MainFrame();
+                        frame.setVisible(true);
 
-                // Reset UIManager
-                UIManager.put("OptionPane.background", null);
-                UIManager.put("Panel.background", null);
+                        // Center the frame
+                        frame.setLocationRelativeTo(null);
 
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null,
-                        "Error starting application: " + e.getMessage(),
-                        "Startup Error",
-                        JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            }
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null,
+                                "Error starting application: " + e.getMessage(),
+                                "Startup Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        e.printStackTrace();
+                    }
+                });
+            }).start();
         });
     }
 }

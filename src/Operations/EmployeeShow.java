@@ -29,11 +29,11 @@ public class EmployeeShow {
                 result.append(String.format("%-15s: %s\n", "Position", rs.getString("position")));
                 result.append(String.format("%-15s: $%.2f\n", "Salary", rs.getDouble("salary")));
             } else {
-                result.append("❌ Employee not found with ID: " + employeeID);
+                result.append("Employee not found with ID: " + employeeID);
             }
 
         } catch (SQLException e) {
-            result.append("❌ Database error: ").append(e.getMessage());
+            result.append("Database error: ").append(e.getMessage());
         }
 
         return result.toString();

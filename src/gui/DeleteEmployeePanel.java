@@ -19,8 +19,8 @@ public class DeleteEmployeePanel extends BasePanel {
     }
 
     private void initializePanel() {
-        // Title
-        JLabel titleLabel = createTitleLabel("🗑️ Delete Employee", new Color(220, 20, 60));
+        // Title with icon
+        JLabel titleLabel = createTitleLabel("Delete Employee", new Color(220, 20, 60), mainFrame.getDeleteIcon());
         add(titleLabel, BorderLayout.NORTH);
 
         // Main content panel
@@ -134,25 +134,6 @@ public class DeleteEmployeePanel extends BasePanel {
         return panel;
     }
 
-    @Override
-    public void applyTheme(boolean darkMode) {
-        setBackground(mainFrame.getBackgroundColor());
-
-        // Apply theme to all components
-        for (Component comp : getComponents()) {
-            applyThemeToComponent(comp, darkMode);
-        }
-
-        // Update text area
-        employeeInfoArea.setBackground(mainFrame.getTextAreaBackground());
-        employeeInfoArea.setForeground(mainFrame.getTextAreaForeground());
-        if (infoScrollPane != null) {
-            infoScrollPane.getViewport().setBackground(mainFrame.getTextAreaBackground());
-        }
-
-        repaint();
-    }
-
     private void findEmployee() {
         String employeeID = searchField.getText().trim();
         if (employeeID.isEmpty()) {
@@ -178,7 +159,7 @@ public class DeleteEmployeePanel extends BasePanel {
             }
 
         } catch (Exception ex) {
-            showMessage("❌ Error finding employee: " + ex.getMessage(),
+            showMessage("Error finding employee: " + ex.getMessage(),
                     "Search Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -196,7 +177,6 @@ public class DeleteEmployeePanel extends BasePanel {
             return;
         }
 
-        // FIXED: Removed the 'this' parameter from showConfirmDialog call
         int confirmation = showConfirmDialog(
                 "Are you sure you want to delete employee " + currentEmployeeID + "?\n" +
                         "This action cannot be undone!",
@@ -210,14 +190,17 @@ public class DeleteEmployeePanel extends BasePanel {
                 boolean success = remover.removeEmployee(currentEmployeeID);
 
                 if (success) {
-                    showMessage("✅ Employee " + currentEmployeeID + " deleted successfully!",
+                    showMessage("Employee " + currentEmployeeID + " deleted successfully!",
                             "Deletion Successful",
                             JOptionPane.INFORMATION_MESSAGE);
                     clearForm();
+
+                    // Refresh dashboard data
+                    mainFrame.refreshDashboardData();
                 }
 
             } catch (Exception ex) {
-                showMessage("❌ Error deleting employee: " + ex.getMessage(),
+                showMessage("Error deleting employee: " + ex.getMessage(),
                         "Deletion Error",
                         JOptionPane.ERROR_MESSAGE);
             }

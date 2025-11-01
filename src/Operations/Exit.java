@@ -14,7 +14,7 @@ public class Exit {
 
         if (response == JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(null,
-                    "👋 Goodbye!\n=====\t~ Coded by Naeshby=====",
+                    "Goodbye!\n\t~ Coded by Naeshby",
                     "Farewell",
                     JOptionPane.INFORMATION_MESSAGE);
             System.exit(0);

@@ -17,8 +17,8 @@ public class ViewEmployeePanel extends BasePanel {
     }
 
     private void initializePanel() {
-        // Title
-        JLabel titleLabel = createTitleLabel("👁️ View Employee Details", new Color(70, 130, 180));
+        // Title with icon
+        JLabel titleLabel = createTitleLabel("View Employee Details", new Color(70, 130, 180), mainFrame.getViewIcon());
         add(titleLabel, BorderLayout.NORTH);
 
         // Search panel
@@ -52,7 +52,7 @@ public class ViewEmployeePanel extends BasePanel {
         scrollPane = new JScrollPane(resultArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        // FIXED: Create a panel for the scrollpane instead of trying to set border directly
+        // Create a panel for the scrollpane
         JPanel resultPanel = new JPanel(new BorderLayout());
         resultPanel.setBackground(mainFrame.getBackgroundColor());
         updateTitledBorder(resultPanel, "Employee Details");
@@ -63,25 +63,6 @@ public class ViewEmployeePanel extends BasePanel {
         // Add action listeners
         searchButton.addActionListener(e -> searchEmployee());
         searchField.addActionListener(e -> searchEmployee());
-    }
-
-    @Override
-    public void applyTheme(boolean darkMode) {
-        setBackground(mainFrame.getBackgroundColor());
-
-        // Apply theme to all components
-        for (Component comp : getComponents()) {
-            applyThemeToComponent(comp, darkMode);
-        }
-
-        // Update text area and scroll pane
-        resultArea.setBackground(mainFrame.getTextAreaBackground());
-        resultArea.setForeground(mainFrame.getTextAreaForeground());
-        if (scrollPane != null) {
-            scrollPane.getViewport().setBackground(mainFrame.getTextAreaBackground());
-        }
-
-        repaint();
     }
 
     private void searchEmployee() {
@@ -101,7 +82,7 @@ public class ViewEmployeePanel extends BasePanel {
             resultArea.setCaretPosition(0);
 
         } catch (Exception ex) {
-            showMessage("❌ Error searching employee: " + ex.getMessage(),
+            showMessage("Error searching employee: " + ex.getMessage(),
                     "Search Error", JOptionPane.ERROR_MESSAGE);
         }
     }

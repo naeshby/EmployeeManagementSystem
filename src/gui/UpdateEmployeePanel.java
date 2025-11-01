@@ -12,9 +12,25 @@ public class UpdateEmployeePanel extends BasePanel {
     private JTextField searchField, updateField;
     private JButton searchButton, updateButton, clearButton;
     private JComboBox<String> fieldComboBox;
+    private JComboBox<String> positionComboBox;
     private JTextArea currentInfoArea;
     private JScrollPane infoScrollPane;
     private String currentEmployeeID;
+
+    // Predefined positions
+    private final String[] PREDEFINED_POSITIONS = {
+            "Select Position",
+            "Software Engineer",
+            "Senior Developer",
+            "Project Manager",
+            "Business Analyst",
+            "Quality Assurance",
+            "DevOps Engineer",
+            "Data Scientist",
+            "UI/UX Designer",
+            "System Administrator",
+            "Technical Lead"
+    };
 
     public UpdateEmployeePanel(MainFrame mainFrame) {
         super(mainFrame);
@@ -22,8 +38,8 @@ public class UpdateEmployeePanel extends BasePanel {
     }
 
     private void initializePanel() {
-        // Title
-        JLabel titleLabel = createTitleLabel("✏️ Update Employee Information", new Color(255, 165, 0));
+        // Title with icon
+        JLabel titleLabel = createTitleLabel("Update Employee Information", new Color(255, 165, 0), mainFrame.getUpdateIcon());
         add(titleLabel, BorderLayout.NORTH);
 
         // Main content panel
@@ -98,9 +114,11 @@ public class UpdateEmployeePanel extends BasePanel {
         fieldComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         fieldComboBox.setPreferredSize(new Dimension(120, 35));
 
-        JLabel valueLabel = new JLabel("New value:");
-        valueLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        valueLabel.setForeground(mainFrame.getForegroundColor());
+        // Create position combo box for when position is selected
+        positionComboBox = new JComboBox<>(PREDEFINED_POSITIONS);
+        positionComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        positionComboBox.setPreferredSize(new Dimension(200, 35));
+        positionComboBox.setVisible(false);
 
         updateField = createTextField();
         updateField.setPreferredSize(new Dimension(200, 35));
@@ -108,7 +126,7 @@ public class UpdateEmployeePanel extends BasePanel {
 
         formPanel.add(fieldLabel);
         formPanel.add(fieldComboBox);
-        formPanel.add(valueLabel);
+        formPanel.add(positionComboBox);
         formPanel.add(updateField);
 
         panel.add(formPanel, BorderLayout.NORTH);
@@ -120,7 +138,7 @@ public class UpdateEmployeePanel extends BasePanel {
         updateButton = createActionButton("Update", new Color(60, 179, 113));
         updateButton.setEnabled(false);
 
-        clearButton = createActionButton("Clear", new Color(220, 20, 60));
+        clearButton = createActionButton("Clear", new Color(200, 0, 0));
 
         buttonPanel.add(updateButton);
         buttonPanel.add(clearButton);
@@ -131,8 +149,17 @@ public class UpdateEmployeePanel extends BasePanel {
         fieldComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 String selected = (String) fieldComboBox.getSelectedItem();
+                boolean isPositionField = "position".equals(selected);
+
+                // Show appropriate component based on selection
+                positionComboBox.setVisible(isPositionField);
+                updateField.setVisible(!isPositionField);
+
                 updateField.setEnabled(!"Select Field".equals(selected));
+                positionComboBox.setEnabled(!"Select Field".equals(selected));
+
                 updateField.setText("");
+                positionComboBox.setSelectedIndex(0);
             }
         });
 
@@ -140,25 +167,6 @@ public class UpdateEmployeePanel extends BasePanel {
         clearButton.addActionListener(e -> clearUpdateForm());
 
         return panel;
-    }
-
-    @Override
-    public void applyTheme(boolean darkMode) {
-        setBackground(mainFrame.getBackgroundColor());
-
-        // Apply theme to all components
-        for (Component comp : getComponents()) {
-            applyThemeToComponent(comp, darkMode);
-        }
-
-        // Update text areas
-        currentInfoArea.setBackground(mainFrame.getTextAreaBackground());
-        currentInfoArea.setForeground(mainFrame.getTextAreaForeground());
-        if (infoScrollPane != null) {
-            infoScrollPane.getViewport().setBackground(mainFrame.getTextAreaBackground());
-        }
-
-        repaint();
     }
 
     private void findEmployee() {
@@ -183,7 +191,7 @@ public class UpdateEmployeePanel extends BasePanel {
             }
 
         } catch (Exception ex) {
-            showMessage("❌ Error finding employee: " + ex.getMessage(),
+            showMessage("Error finding employee: " + ex.getMessage(),
                     "Search Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -196,7 +204,19 @@ public class UpdateEmployeePanel extends BasePanel {
         }
 
         String field = (String) fieldComboBox.getSelectedItem();
-        String newValue = updateField.getText().trim();
+        String newValue;
+
+        // Get value from appropriate component
+        if ("position".equals(field)) {
+            newValue = (String) positionComboBox.getSelectedItem();
+            if ("Select Position".equals(newValue)) {
+                showMessage("Please select a position from the list",
+                        "Position Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } else {
+            newValue = updateField.getText().trim();
+        }
 
         if ("Select Field".equals(field) || newValue.isEmpty()) {
             showMessage("Please select a field and enter new value",
@@ -204,7 +224,7 @@ public class UpdateEmployeePanel extends BasePanel {
             return;
         }
 
-        // Validate salary if updating salary
+        // Validate salary if updating salary field
         if ("salary".equals(field)) {
             try {
                 Double.parseDouble(newValue);
@@ -220,7 +240,7 @@ public class UpdateEmployeePanel extends BasePanel {
             boolean success = updater.updateEmployee(currentEmployeeID, field, newValue);
 
             if (success) {
-                showMessage("✅ Employee updated successfully!\n\n" +
+                showMessage("Employee updated successfully!\n\n" +
                                 "Field: " + field + "\n" +
                                 "New Value: " + newValue,
                         "Update Successful", JOptionPane.INFORMATION_MESSAGE);
@@ -231,7 +251,7 @@ public class UpdateEmployeePanel extends BasePanel {
             }
 
         } catch (Exception ex) {
-            showMessage("❌ Error updating employee: " + ex.getMessage(),
+            showMessage("Error updating employee: " + ex.getMessage(),
                     "Update Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -240,6 +260,9 @@ public class UpdateEmployeePanel extends BasePanel {
         fieldComboBox.setSelectedIndex(0);
         updateField.setText("");
         updateField.setEnabled(false);
+        positionComboBox.setSelectedIndex(0);
+        positionComboBox.setVisible(false);
+        updateField.setVisible(true);
     }
 
     public void clearForm() {
