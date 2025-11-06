@@ -1,0 +1,8 @@
+
+
+Employee ID: 0002
+Employee Name: Angel Peace
+Contact: 5555555555
+Email: angel@peace.com
+Position: CEO
+Salary: .3

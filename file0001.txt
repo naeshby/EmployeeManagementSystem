@@ -1,0 +1,6 @@
+Employee ID: 0001
+Employee Name: Brandon Tinashe
+Contact: 8264768346
+Email: brandon@naeshby.com
+Position: Developer
+Salary: 5
